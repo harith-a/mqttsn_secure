@@ -1,0 +1,11 @@
+{
+    'primary': {
+        host: '10.8.132.36',
+        username: 'pi',
+        password: 'raspberry',
+        path: '/codes/mqttsn/pi',
+
+        upload_on_save: true,
+        tls: true
+    }
+}
