@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
             topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
         }
 
-        while(i<5)
+        while(i<40000)
         {
          gettimeofday(&start, NULL);
 

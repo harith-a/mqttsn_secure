@@ -34,6 +34,7 @@
 #include <signal.h>
 #include <time.h>
 #include "mqtt-sn.h"
+#include <sys/time.h>
 
 const char *client_id = NULL;
 const char *topic_name = NULL;
@@ -147,9 +148,13 @@ int main(int argc, char* argv[])
 
     // Parse the command-line options
     parse_opts(argc, argv);
-
+    
     int i=0;
-  
+
+    //Variables for time taking
+    struct timeval start, end;
+    FILE *fp;
+    float taken;
 
     // Create a UDP socket
     sock = mqtt_sn_create_socket(mqtt_sn_host, mqtt_sn_port);
@@ -175,9 +180,9 @@ int main(int argc, char* argv[])
             topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
         }
 
-        while(i<100)
+        while(i<40000)
         {
-        
+        gettimeofday(&start, NULL);
         // Publish to the topic 
         if (qos == 0){
         mqtt_sn_send_publish(sock, topic_id, topic_id_type, message_data, qos, retain);
@@ -291,6 +296,21 @@ int main(int argc, char* argv[])
             }
         }
         
+        gettimeofday(&end, NULL);
+
+        taken = (float)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000;
+
+        //open file for writing
+        fp = fopen( "logfile.csv", "a" ); // Open file for writing
+        fprintf(fp, "Seq %d , %3.2fms, ",i,taken);
+        fprintf(fp,"Time %s\r\n",ctime((const time_t *) &end.tv_sec));
+        fclose(fp);
+
+        
+        // printf("Time taken is:%3.2f ms\n\n", (float)((end.tv_sec * 1000000 + end.tv_usec)
+        //   - (start.tv_sec * 1000000 + start.tv_usec))/1000);
+        
+        sleep(1);
         i++;
         }
         
