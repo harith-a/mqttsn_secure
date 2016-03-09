@@ -160,8 +160,8 @@ int main(int argc, char* argv[])
 
     //Variables for time taking
     struct timeval start, end, seed;
-    FILE *fp;
-    int taken;
+    // FILE *fp;
+    float taken;
 
     // Parse the command-line options
     parse_opts(argc, argv);
@@ -194,10 +194,10 @@ int main(int argc, char* argv[])
             topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
         }
 
-        gettimeofday(&start, NULL);
-        while(1)
+        // gettimeofday(&start, NULL);
+        while(i<=1000)
         {
-         
+         gettimeofday(&start, NULL);
 
         // Encrypt Message
         uint8_t newMessage[200];
@@ -332,8 +332,11 @@ int main(int argc, char* argv[])
         
         gettimeofday(&end, NULL);
 
-        taken = (int)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000000;
+        // taken = (int)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000000;
 
+        taken = (float)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000;
+
+        printf("Time taken is:%3.2f ms\n\n",taken);
         //open file for writing
         // fp = fopen( "logfile.csv", "a" ); // Open file for writing
         // fprintf(fp, "Seq %d , %3.2fms, ",i,taken);
@@ -343,12 +346,12 @@ int main(int argc, char* argv[])
         // printf("Time taken is:%3.2d s\n\n", (int)((end.tv_sec * 1000000 + end.tv_usec)
         //   - (start.tv_sec * 1000000 + start.tv_usec))/1000000);
         
-        // sleep(1);
+        sleep(0.5);
         i++;
-        if(taken>=2){
-            printf("%d messages sent.\n", i);    
-            exit(EXIT_SUCCESS);
-        }
+        // if(taken>=2){
+        //     printf("%d messages sent.\n", i);    
+        //     exit(EXIT_SUCCESS);
+        // }
         
         }
 
