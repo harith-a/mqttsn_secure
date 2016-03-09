@@ -156,12 +156,12 @@ static void parse_opts(int argc, char** argv)
 int main(int argc, char* argv[])
 {
     int sock;
-    int i=0;
+    int i=1;
 
     //Variables for time taking
-    struct timeval start, end;
+    struct timeval start, end, seed;
     FILE *fp;
-    float taken;
+    int taken;
 
     // Parse the command-line options
     parse_opts(argc, argv);
@@ -194,17 +194,19 @@ int main(int argc, char* argv[])
             topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
         }
 
-        while(i<40000)
+        gettimeofday(&start, NULL);
+        while(1)
         {
-         gettimeofday(&start, NULL);
+         
 
         // Encrypt Message
         uint8_t newMessage[200];
         // Pad the message string and turn into bytearray, also retreive length of padded string
         padStr(message_data,newMessage,&lenmsg);
         // Create random IV
+        gettimeofday(&seed, NULL);
         pcg32_random_t rng;
-        pcg32_srandom_r(&rng, time(NULL) ^ (intptr_t)&printf, (intptr_t)&rounds);
+        pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
         uint32_t rang = pcg32_random_r(&rng);
         memcpy(iv,&rang,sizeof(iv));
 
@@ -218,7 +220,7 @@ int main(int argc, char* argv[])
          
 
         // printf("\nEncrypted Ciphertext: \n");
-        printMessage(sendMessage,sizeof(sendMessage));
+        // printMessage(sendMessage,sizeof(sendMessage));
 
         // Publish to the topic 
         mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain); 
@@ -330,20 +332,24 @@ int main(int argc, char* argv[])
         
         gettimeofday(&end, NULL);
 
-        taken = (float)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000;
+        taken = (int)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000000;
 
         //open file for writing
-        fp = fopen( "logfile.csv", "a" ); // Open file for writing
-        fprintf(fp, "Seq %d , %3.2fms, ",i,taken);
-        fprintf(fp,"Time %s\r\n",ctime((const time_t *) &end.tv_sec));
-        fclose(fp);
+        // fp = fopen( "logfile.csv", "a" ); // Open file for writing
+        // fprintf(fp, "Seq %d , %3.2fms, ",i,taken);
+        // fprintf(fp,"Time %s\r\n",ctime((const time_t *) &end.tv_sec));
+        // fclose(fp);
 
+        // printf("Time taken is:%3.2d s\n\n", (int)((end.tv_sec * 1000000 + end.tv_usec)
+        //   - (start.tv_sec * 1000000 + start.tv_usec))/1000000);
         
-        // printf("Time taken is:%3.2f ms\n\n", (float)((end.tv_sec * 1000000 + end.tv_usec)
-        //   - (start.tv_sec * 1000000 + start.tv_usec))/1000);
-        
-        sleep(1);
+        // sleep(1);
         i++;
+        if(taken>=2){
+            printf("%d messages sent.\n", i);    
+            exit(EXIT_SUCCESS);
+        }
+        
         }
 
         if (qos >= 0) {
