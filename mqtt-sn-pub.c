@@ -180,9 +180,9 @@ int main(int argc, char* argv[])
             topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
         }
 
-        while(i<40000)
-        {
         gettimeofday(&start, NULL);
+        while(1)
+        {
         // Publish to the topic 
         if (qos == 0){
         mqtt_sn_send_publish(sock, topic_id, topic_id_type, message_data, qos, retain);
@@ -298,20 +298,24 @@ int main(int argc, char* argv[])
         
         gettimeofday(&end, NULL);
 
-        taken = (float)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000;
+        taken = (int)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000000;
 
         //open file for writing
-        fp = fopen( "logfile.csv", "a" ); // Open file for writing
-        fprintf(fp, "Seq %d , %3.2fms, ",i,taken);
-        fprintf(fp,"Time %s\r\n",ctime((const time_t *) &end.tv_sec));
-        fclose(fp);
+        // fp = fopen( "logfile.csv", "a" ); // Open file for writing
+        // fprintf(fp, "Seq %d , %3.2fms, ",i,taken);
+        // fprintf(fp,"Time %s\r\n",ctime((const time_t *) &end.tv_sec));
+        // fclose(fp);
 
+        // printf("Time taken is:%3.2d s\n\n", (int)((end.tv_sec * 1000000 + end.tv_usec)
+        //   - (start.tv_sec * 1000000 + start.tv_usec))/1000000);
         
-        // printf("Time taken is:%3.2f ms\n\n", (float)((end.tv_sec * 1000000 + end.tv_usec)
-        //   - (start.tv_sec * 1000000 + start.tv_usec))/1000);
-        
-        sleep(1);
+        // sleep(1);
         i++;
+        if(taken>=2){
+            printf("%d messages sent.\n", i);    
+            exit(EXIT_SUCCESS);
+        }
+        
         }
         
         if (qos >= 0) {
