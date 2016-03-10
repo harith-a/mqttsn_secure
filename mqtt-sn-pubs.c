@@ -210,10 +210,13 @@ int main(int argc, char* argv[])
         // gettimeofday(&start, NULL);
         // while(i<=1000)
         // {
-         gettimeofday(&start, NULL);
+        gettimeofday(&start, NULL);
+
+        uint8_t newMessage[256];
+        padStr(message_data,newMessage,&lenmsg);
 
         printf("Plaintext\n"); 
-        printMessage(plain_text,64);
+        printMessage(message_data,lenmsg);
 
         gettimeofday(&seed, NULL);
         pcg32_random_t rng;
@@ -221,20 +224,12 @@ int main(int argc, char* argv[])
         uint32_t rang = pcg32_random_r(&rng);
         memcpy(iv,&rang,sizeof(iv));
 
-        uint8_t newMessage[200];
-        AES128_CBC_encrypt_buffer(newMessage, plain_text, 64, aeskey, iv);
+
+        AES128_CBC_encrypt_buffer(newMessage, message_data, lenmsg, aeskey, iv);
        
         printf("Ciphertext\n");
-        printMessage(newMessage,64);
-        uint8_t buffer[64];
+        printMessage(newMessage,lenmsg);
 
-        AES128_CBC_decrypt_buffer(buffer+0, newMessage+0,  16, aeskey, iv);
-        AES128_CBC_decrypt_buffer(buffer+16, newMessage+16, 16, 0, 0);
-        AES128_CBC_decrypt_buffer(buffer+32, newMessage+32, 16, 0, 0);
-        AES128_CBC_decrypt_buffer(buffer+48, newMessage+48, 16, 0, 0);
-
-        printf("Decrypted text\n");
-        printMessage(buffer,64);
 
         // // Encrypt Message
         // uint8_t newMessage[200];
