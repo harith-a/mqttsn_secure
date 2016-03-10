@@ -26,7 +26,7 @@ dist:
 	rm -fr $$distdir
 
 pubs:
-	gcc mqtt-sn-pubs.c mqtt-sn.c presentcbc.c -o mqtt-sn-pubs
+	gcc mqtt-sn-pubs.c mqtt-sn.c presentcbc.c -o mqtt-sn-pubs aes/aes.c
 
 subs:
 
