@@ -49,7 +49,7 @@ uint8_t plain_text[64] = { (uint8_t) 0x6b, (uint8_t) 0xc1, (uint8_t) 0xbe, (uint
                            (uint8_t) 0x30, (uint8_t) 0xc8, (uint8_t) 0x1c, (uint8_t) 0x46, (uint8_t) 0xa3, (uint8_t) 0x5c, (uint8_t) 0xe4, (uint8_t) 0x11, (uint8_t) 0xe5, (uint8_t) 0xfb, (uint8_t) 0xc1, (uint8_t) 0x19, (uint8_t) 0x1a, (uint8_t) 0x0a, (uint8_t) 0x52, (uint8_t) 0xef,
                            (uint8_t) 0xf6, (uint8_t) 0x9f, (uint8_t) 0x24, (uint8_t) 0x45, (uint8_t) 0xdf, (uint8_t) 0x4f, (uint8_t) 0x9b, (uint8_t) 0x17, (uint8_t) 0xad, (uint8_t) 0x2b, (uint8_t) 0x41, (uint8_t) 0x7b, (uint8_t) 0xe6, (uint8_t) 0x6c, (uint8_t) 0x37, (uint8_t) 0x10 };
 
-
+uint8_t aesiv[] =  {0x0f,0x79,0xc1,0x38,0x7b,0x22,0x84,0x45,0x0f,0x79,0xc1,0x38,0x7b,0x22,0x84,0x45};
 
 //present
 uint8_t theKey[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
@@ -71,6 +71,9 @@ uint8_t topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
 int8_t qos = 0;
 uint8_t retain = FALSE;
 uint8_t debug = TRUE;
+uint8_t logg = FALSE;
+uint8_t loop = FALSE;
+const char *encryption = "no";
 
 
 static void usage()
@@ -95,7 +98,7 @@ static void parse_opts(int argc, char** argv)
     int ch;
 
     // Parse the options/switches
-    while ((ch = getopt(argc, argv, "dh:i:m:np:q:rt:T:?")) != -1)
+    while ((ch = getopt(argc, argv, "dh:i:m:np:q:rt:T:e:lL?")) != -1)
         switch (ch) {
         case 'd':
             debug = TRUE;
@@ -136,7 +139,15 @@ static void parse_opts(int argc, char** argv)
         case 'T':
             topic_id = atoi(optarg);
         break;
-
+        case 'e':
+            encryption = optarg;
+        break;
+        case 'l':
+            logg = TRUE;
+        break;
+        case 'L':
+            loop = TRUE;
+        break;
         case '?':
         default:
             usage();
@@ -170,10 +181,10 @@ int main(int argc, char* argv[])
 {
     int sock;
     int i=1;
+    
 
     //Variables for time taking
     struct timeval start, end, seed;
-    // FILE *fp;
     float taken;
 
     // Parse the command-line options
@@ -190,7 +201,7 @@ int main(int argc, char* argv[])
         // Connect to gateway
         if (qos >= 0) {
             mqtt_sn_send_connect(sock, client_id, keep_alive);
-            mqtt_sn_receive_connack(sock);
+             mqtt_sn_receive_connack(sock);
         }
 
         if (topic_id) {
@@ -199,65 +210,79 @@ int main(int argc, char* argv[])
         } else if (strlen(topic_name) == 2) {
             // Convert the 2 character topic name into a 2 byte topic id
             topic_id = (topic_name[0] << 8) + topic_name[1];
-            topic_id_type = MQTT_SN_TOPIC_TYPE_SHORT;
+             topic_id_type = MQTT_SN_TOPIC_TYPE_SHORT;
         } else if (qos >= 0) {
             // Register the topic name
             mqtt_sn_send_register(sock, topic_name);
             topic_id = mqtt_sn_receive_regack(sock);
-            topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
+             topic_id_type = MQTT_SN_TOPIC_TYPE_NORMAL;
         }
+
 
         // gettimeofday(&start, NULL);
         // while(i<=1000)
-        // {
+        // {    
+        
         gettimeofday(&start, NULL);
 
-        uint8_t newMessage[256];
-        padStr(message_data,newMessage,&lenmsg);
+        if(strcmp(encryption,"aes")==0){
+            uint8_t oriMessage[256];
+            uint8_t newMessage[256];
+             padStr(message_data,oriMessage,&lenmsg);
 
-        printf("Plaintext\n"); 
-        printMessage(message_data,lenmsg);
+            // if(debug){
+            //     printf("Plaintext\n");
+            //      printMessage((uint8_t *)message_data,lenmsg);
+            // }
 
-        gettimeofday(&seed, NULL);
-        pcg32_random_t rng;
-        pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
-        uint32_t rang = pcg32_random_r(&rng);
-        memcpy(iv,&rang,sizeof(iv));
-
-
-        AES128_CBC_encrypt_buffer(newMessage, message_data, lenmsg, aeskey, iv);
+            gettimeofday(&seed, NULL);
+             pcg32_random_t rng;
+              pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
+               uint32_t rang = pcg32_random_r(&rng);
+                memcpy(aesiv,&rang,sizeof(aesiv));
+ 
+            AES128_CBC_encrypt_buffer(newMessage, oriMessage, lenmsg, aeskey, aesiv);
        
-        printf("Ciphertext\n");
-        printMessage(newMessage,lenmsg);
+            if(debug){
+                printf("nEncrypted Ciphertext\n");
+                 printMessage(newMessage,lenmsg);
+            }
+            
+            uint8_t sendMessage[lenmsg+8];
+             memcpy(&sendMessage,&newMessage,sizeof(message_data));
 
+             // Publish to the topic 
+            mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+16, qos, retain); 
+        }
 
-        // // Encrypt Message
-        // uint8_t newMessage[200];
-        // // Pad the message string and turn into bytearray, also retreive length of padded string
-        // padStr(message_data,newMessage,&lenmsg);
-        // // Create random IV
-        // gettimeofday(&seed, NULL);
-        // pcg32_random_t rng;
-        // pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
-        // uint32_t rang = pcg32_random_r(&rng);
-        // memcpy(iv,&rang,sizeof(iv));
+        else if(strcmp(encryption,"present")==0){
 
-        // // printf("\nPadded Plaintext: \n");
-        // // printMessage(newMessage,lenmsg);
-        // cbc_encrypt((uint8_t*)theKey,iv,newMessage,lenmsg);
+            uint8_t newMessage[256];
+             padStr(message_data,newMessage,&lenmsg);
+            
+            // Create random IV
+            gettimeofday(&seed, NULL);
+             pcg32_random_t rng;
+              pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
+               uint32_t rang = pcg32_random_r(&rng);
+                memcpy(iv,&rang,sizeof(iv));
 
-        // uint8_t sendMessage[lenmsg+8]; //create array with space for iv
-        // memcpy(sendMessage,iv,8);
-        // memcpy(sendMessage+8,newMessage,lenmsg);
-         
+            cbc_encrypt((uint8_t*)theKey,iv,newMessage,lenmsg);
 
-        // printf("\nEncrypted Ciphertext: \n");
-        // printMessage(sendMessage,sizeof(sendMessage));
+            uint8_t sendMessage[lenmsg+8]; //create array with space for iv
+             memcpy(sendMessage,iv,8);
+              memcpy(sendMessage+8,newMessage,lenmsg);
+             
+            if(debug){
+                printf("\nEncrypted Ciphertext: \n");
+                 printMessage(sendMessage,sizeof(sendMessage));
+            }
 
-        uint8_t sendMessage[255];
-        memcpy(&sendMessage,&newMessage,sizeof(message_data));
-        // Publish to the topic 
-        mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain); 
+            // Publish to the topic 
+            mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain); 
+        
+        }   
+        
         
         // Manage Return Packets and Retrasnmits - harith
         if (qos >= 1){
@@ -290,7 +315,7 @@ int main(int argc, char* argv[])
                     else if (ret == 0)
                     {
                         printf("republishing...\n");
-                        mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain); 
+                        // mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain); 
                         resend++;
                     }
                 }
@@ -328,7 +353,7 @@ int main(int argc, char* argv[])
                     else if (ret == 0)
                     {
                         printf("republishing qos21...\n");
-                        mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain); 
+                        // mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain); 
                         resendpublish++;
                     }
                 }
@@ -371,16 +396,18 @@ int main(int argc, char* argv[])
         taken = (float)((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec))/1000;
 
         printf("Time taken is:%3.2f ms\n\n",taken);
+        if (logg){
         //open file for writing
-        // fp = fopen( "logfile.csv", "a" ); // Open file for writing
-        // fprintf(fp, "Seq %d , %3.2fms, ",i,taken);
-        // fprintf(fp,"Time %s\r\n",ctime((const time_t *) &end.tv_sec));
-        // fclose(fp);
-
-        // printf("Time taken is:%3.2d s\n\n", (int)((end.tv_sec * 1000000 + end.tv_usec)
-        //   - (start.tv_sec * 1000000 + start.tv_usec))/1000000);
-        
-        usleep(500);
+            FILE *fp;
+            fp = fopen( "mqttsnpubs.csv", "a" ); // Open file for writing
+            fprintf(fp, "%d , %3.2f, ",i,taken);
+            fprintf(fp,"Time %s\r\n",ctime((const time_t *) &end.tv_sec));
+            fclose(fp);
+    
+            printf("Time taken is:%3.2d s\n\n", (int)((end.tv_sec * 1000000 + end.tv_usec)
+              - (start.tv_sec * 1000000 + start.tv_usec))/1000000);
+        }
+        usleep(500*1000);
         i++;
         // if(taken>=2){
         //     printf("%d messages sent.\n", i);    
