@@ -244,12 +244,13 @@ int main(int argc, char* argv[])
             AES128_CBC_encrypt_buffer(newMessage, oriMessage, lenmsg, aeskey, aesiv);
        
             if(debug){
-                printf("nEncrypted Ciphertext\n");
+                printf("\nEncrypted Ciphertext\n");
                  printMessage(newMessage,lenmsg);
             }
-            
-            uint8_t sendMessage[lenmsg+8];
-             memcpy(&sendMessage,&newMessage,sizeof(message_data));
+
+            uint8_t sendMessage[lenmsg+16]; //create array with space for iv
+             memcpy(sendMessage,aesiv,16);
+              memcpy(sendMessage+16,newMessage,lenmsg);
 
              // Publish to the topic 
             mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+16, qos, retain); 
