@@ -31,6 +31,7 @@ void cbc_encrypt( uint8_t *, const uint8_t *, uint8_t *, size_t );
 void cbc_decrypt( uint8_t *, const uint8_t *, uint8_t *, size_t );
 
 void padStr(char* str, uint8_t *padded,int *len);
+void padStr16(char* str, uint8_t *padded,int *len);
 void presentencrypt(char *str, uint8_t *retstr);
 void presentdecrypt(uint8_t *retstr, char *str);
 

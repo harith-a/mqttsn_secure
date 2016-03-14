@@ -425,7 +425,34 @@ void padStr(char* str, uint8_t *padded,int *len)
         int lenmsg = sizeof(newMessage);
         memcpy(padded,newMessage,lenmsg);
         memcpy(len,&lenmsg,sizeof(lenmsg));
-} 
+}
+
+void padStr16(char* str, uint8_t *padded,int *len)
+{
+    int lenstr = strlen(str);
+    int pad = 0;   
+        /*pad the message to multiple of 8 bytes*/
+    
+        int blok = lenstr / 16;
+        int baki = lenstr % 16;
+
+        if (baki<=15)
+            {   
+            blok ++;
+            pad = (16 - baki); 
+            }
+        else
+            {   
+            printf("Padding Error\n");   
+            }
+    
+        uint8_t newMessage[blok * 16 * sizeof(uint8_t)];
+        memset(newMessage+lenstr,pad,pad);
+        memcpy(newMessage,str,lenstr);
+        int lenmsg = sizeof(newMessage);
+        memcpy(padded,newMessage,lenmsg);
+        memcpy(len,&lenmsg,sizeof(lenmsg));
+}
 
 inline void printMessage( uint8_t *msg, size_t saiz  ) {
    uint8_t i;
