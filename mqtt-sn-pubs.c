@@ -185,7 +185,8 @@ static void parse_opts(int argc, char** argv)
 int main(int argc, char* argv[])
 {
     int sock;
-    int i=1;
+    int i=1,k,j;
+
     
 
     //Variables for time taking
@@ -246,7 +247,7 @@ int main(int argc, char* argv[])
             gettimeofday(&seed, NULL);
              pcg32_random_t rng;
               pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
-               for(int k=0;k<4;k++){
+               for(k=0;k<4;k++){
                     uint32_t rang = pcg32_random_r(&rng);
                     memcpy(aesiv+(k*4),&rang,4);
                 }
@@ -297,7 +298,7 @@ int main(int argc, char* argv[])
                  printf("lenmsg divided %d\n",lenmsg/16);
                  printf("lenmsg %d\n",lenmsg);
 
-                    for(int j=1;j<=((lenmsg/16)-1);j++){
+                    for(j=1;j<=((lenmsg/16)-1);j++){
                 
                         AES128_CBC_decrypt_buffer(buffer+(j*16), newMessage+(j*16), 16, 0, 0);
                     }
@@ -319,7 +320,7 @@ int main(int argc, char* argv[])
             gettimeofday(&seed, NULL);
              pcg32_random_t rng;
               pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
-               for(int k=0;k<2;k++){
+               for(k=0;k<2;k++){
                     uint32_t rang = pcg32_random_r(&rng);
                     memcpy(iv+(k*4),&rang,4);
                 }
@@ -372,7 +373,7 @@ int main(int argc, char* argv[])
             gettimeofday(&seed, NULL);
              pcg32_random_t rng;
               pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
-               for(int k=0;k<2;k++){
+               for(k=0;k<2;k++){
                     uint32_t rang = pcg32_random_r(&rng);
                     memcpy(iv+(k*4),&rang,4);
                 }
@@ -432,7 +433,7 @@ int main(int argc, char* argv[])
             gettimeofday(&seed, NULL);
              pcg32_random_t rng;
               pcg32_srandom_r(&rng, seed.tv_usec ^ (intptr_t)&printf, (intptr_t)&rounds);
-               for(int k=0;k<2;k++){
+               for(k=0;k<2;k++){
                     uint32_t rang = pcg32_random_r(&rng);
                     memcpy(iv+(k*4),&rang,4);
                 }

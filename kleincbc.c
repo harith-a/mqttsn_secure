@@ -218,11 +218,11 @@ void klein_cbc_decrypt( uint8_t *key, const uint8_t *iv, uint8_t *data, size_t d
 {
         uint8_t cbc[BLOCK_SIZE], tmp[BLOCK_SIZE];
         uint8_t *pos = data;
-        int i, j, blocks;
+        int i, j, blocks, r;
 
         memcpy(cbc, iv, BLOCK_SIZE);
 
-        for (int r=1 ; r<17 ; r++)
+        for (r=1 ; r<17 ; r++)
             {
                 KeySetup(key,r);
             }
