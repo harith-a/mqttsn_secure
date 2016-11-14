@@ -329,6 +329,7 @@ void mqtt_sn_send_secure_publish(int sock, uint16_t topic_id, uint8_t topic_type
     if (debug)
         fprintf(stderr, "Sending PUBLISH packet...\n");
 
+
     return mqtt_sn_send_packet(sock, &packet);
 }
 

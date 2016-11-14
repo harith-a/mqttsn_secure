@@ -224,7 +224,8 @@ int main(int argc, char* argv[])
                     uint8_t message_datas[200];
                     lenmsg = strlen(packet->data);
                     memcpy(message_datas,packet->data,lenmsg);
-                    
+
+                    printf("Received data:\n");                    
                     printMessage(message_datas,lenmsg);
                     
                     if(lenmsg<16)
@@ -232,9 +233,6 @@ int main(int argc, char* argv[])
                         fprintf(stderr, "Err: Not enough data received.\n");
                         return 1;
                     }
-
-                    // printf("Received data:\n");
-                    // printMessage(message_datas,lenmsg);
 
                     uint8_t recvMessage[200];
                     memcpy(iv,message_datas,8);
