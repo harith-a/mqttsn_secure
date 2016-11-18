@@ -3,12 +3,12 @@ PACKAGE=mqtt-sn-tools
 VERSION=0.0.3
 CFLAGS=-g -Wall -DVERSION=$(VERSION)
 LDFLAGS=
-TARGETS=pubs subs
+TARGETS=mqtt-sn-pubs mqtt-sn-subs
 
 
 all: clean $(TARGETS)
 
-$(TARGETS): %: mqtt-sn.o presentcbc.o %.o
+$(TARGETS): %: mqtt-sn.o presentcbc.o kleincbc.o lblockcbc.o aes/aes.o %.o
 	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o : %.c mqtt-sn.h presentcbc.h
