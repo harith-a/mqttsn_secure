@@ -3,7 +3,7 @@ PACKAGE=mqtt-sn-tools
 VERSION=0.0.3
 CFLAGS=-g -Wall -DVERSION=$(VERSION)
 LDFLAGS=
-TARGETS=mqtt-sn-pub mqtt-sn-sub mqtt-sn-serial-bridge mqtt-sn-pubs mqtt-sn-subs
+TARGETS=pubs subs
 
 
 all: clean $(TARGETS)
