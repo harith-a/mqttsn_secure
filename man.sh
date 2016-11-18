@@ -17,7 +17,8 @@ II="\
 
 if [ $1 == aes ]
 	then
-		./mqtt-sn-pubs -p 1884 -h 10.8.132.85 -t ha -q 0 -m $II -L -e aes 
+		# ./mqtt-sn-pubs -p 1884 -h 10.8.132.85 -t ha -q 0 -m $II -L -e aes
+		./mqtt-sn-pubs -p 1884 -h 127.0.0.1 -t ha -q 1 -m $II -L -e aes 
 
 	else
 		./mqtt-sn-pubs -p 1884 -h 10.8.132.85 -t ha -q 0 -m $I -L -e $1
