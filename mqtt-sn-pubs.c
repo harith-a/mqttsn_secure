@@ -470,7 +470,9 @@ int main(int argc, char* argv[])
             mqtt_sn_send_secure_publish(sock, topic_id, topic_id_type, sendMessage ,lenmsg+8, qos, retain);    
 
         }
-
+        else  {
+        mqtt_sn_send_publish(sock, topic_id, topic_id_type, message_data, qos, retain);
+        }
         
         // Manage Return Packets and Retrasnmits - harith
         if (qos >= 1){
